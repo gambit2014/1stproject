@@ -1,0 +1,55 @@
+import os
+import smtplib
+from email.message import EmailMessage
+
+def start(email):
+    found = []
+    for subdir, dirs, files in os.walk('./'): #walk through current directory
+        for new_file in files: #walk through all files found
+            if new_file.endswith('.txt'): #depends on type of file 
+                found_this = False
+                content = open(new_file).read().splitlines() # Read the contents of the file into a list named content
+                for line in content: #Loop through the content
+                    if 'To:' in line or 'From:' in line:
+                        if email in line: #If the email entered on command line is in the content
+                            found_this = True
+                if found_this:
+                    found.append(new_file)        
+    print(found) 
+    if len(found) < 1:
+        print('No matches found')
+        return
+
+    #Now send email
+    content = 'All matching files'
+    
+    #The mail addresses and password
+    username = 'xxxx@hotmail.com' #replace with your mail
+    password = 'jjjviksduiisqzji' #replace with your password
+
+    msg = EmailMessage()
+    msg["From"] = username
+    msg["Subject"] = "Matching Files"
+    msg["To"] = email
+    msg.set_content(content)
+
+    for attachment in found:
+        msg.add_attachment(open(attachment, "r").read(), filename=attachment)
+
+    #SMTP PART
+    server = smtplib.SMTP('smtp.mail.yahoo.com', 587)
+    server.starttls()
+    try:
+        server.login(username, password)
+        server.send_message(msg)
+        print('message sent ...')
+    except BaseException as e:
+        print(str(e))
+        
+
+if __name__ == "__main__": 
+    while True:
+        name = input('Enter email address: ')
+        start(name)
+    
+
